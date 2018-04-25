@@ -64,6 +64,31 @@ describe('most blogs', () => {
 
 })
 
+describe('most likes', () => {
+  const singleAuthor = {
+    author: 'Edsger W. Dijkstra',
+    likes: 5
+  }
+
+  const likedAuthor = {
+    author: 'Edsger W. Dijkstra',
+    likes: 17
+  }
+
+  test('of empty list return error', () => {
+    expect(listHelper.mostLikes([])).toEqual(error)
+  })
+
+  test('of list of single blog to be that author and likes', () => {
+    expect(listHelper.mostLikes(singleBlog)).toEqual(singleAuthor)
+  })
+
+  test('of bigger list to be right author with correct number of likes', () => {
+    expect(listHelper.mostLikes(blogList)).toEqual(likedAuthor)
+  })
+
+})
+
 const error = {
   error: 'empty list'
 }
