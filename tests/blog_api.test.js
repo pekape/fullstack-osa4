@@ -72,6 +72,22 @@ test('a valid blog can be added', async () => {
   expect(contents).toContain('otsikko')
 })
 
+test('adding a blog without likes-field sets likes to 0', async () => {
+  const newBlog = {
+    title: 'adsf',
+    author: 'xvc',
+    url: 'a.b.c'
+  }
+
+  const response = await api
+    .post('/api/blogs')
+    .send(newBlog)
+
+  const createdBlog = response.body
+
+  expect(createdBlog.likes).toBe(0)
+})
+
 afterAll(() => {
   server.close()
 })
