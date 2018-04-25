@@ -49,6 +49,29 @@ test('returned blogs contain specific author', async () => {
   expect(contents).toContain('Edsger W. Dijkstra')
 })
 
+test('a valid blog can be added', async () => {
+  const newBlog = {
+    title: 'otsikko',
+    author: 'kirjoittaja',
+    url: 'www.asdf.fi',
+    likes: 10
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const response = await api
+    .get('/api/blogs')
+
+  const contents = response.body.map(r => r.title)
+
+  expect(response.body.length).toBe(initialBlogs.length + 1)
+  expect(contents).toContain('otsikko')
+})
+
 afterAll(() => {
   server.close()
 })
