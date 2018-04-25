@@ -16,8 +16,26 @@ const favoriteBlog = (blogs) => {
   })
 }
 
+const mostBlogs = (blogs) => {
+  if (blogs.length === 0) {
+    return { error: 'empty list' }
+  }
+
+  const authors = []
+
+  blogs.forEach(blog => {
+    const found = authors.find(a => a.author === blog.author)
+    found ? found.blogs++ : authors.push({ author: blog.author, blogs: 1 })
+  })
+
+  authors.sort((a, b) => b.blogs - a.blogs)
+
+  return authors[0]
+}
+
 module.exports = {
   dummy,
   totalLikes,
-  favoriteBlog
+  favoriteBlog,
+  mostBlogs
 }

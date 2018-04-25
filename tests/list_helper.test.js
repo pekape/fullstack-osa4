@@ -25,9 +25,6 @@ describe('total likes', () => {
 })
 
 describe('favorite blog', () => {
-  const error = {
-    error: 'empty list'
-  }
 
   test('of empty list return error', () => {
     expect(listHelper.favoriteBlog([])).toEqual(error)
@@ -41,6 +38,35 @@ describe('favorite blog', () => {
     expect(listHelper.favoriteBlog(blogList)).toEqual(blogList[2])
   })
 })
+
+describe('most blogs', () => {
+  const singleAuthor = {
+    author: 'Edsger W. Dijkstra',
+    blogs: 1
+  }
+
+  const activeAuthor = {
+    author: 'Robert C. Martin',
+    blogs: 3
+  }
+
+  test('of empty list return error', () => {
+    expect(listHelper.mostBlogs([])).toEqual(error)
+  })
+
+  test('of list of single blog to be that author and 1 blog', () => {
+    expect(listHelper.mostBlogs(singleBlog)).toEqual(singleAuthor)
+  })
+
+  test('of bigger list to be right author with correct number of blogs', () => {
+    expect(listHelper.mostBlogs(blogList)).toEqual(activeAuthor)
+  })
+
+})
+
+const error = {
+  error: 'empty list'
+}
 
 const singleBlog = [
   {
