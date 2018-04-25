@@ -1,4 +1,5 @@
 const dummy = (blogs) => {
+  blogs // eslintin valituksesta eroon
   return 1
 }
 
