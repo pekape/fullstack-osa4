@@ -88,6 +88,34 @@ test('adding a blog without likes-field sets likes to 0', async () => {
   expect(createdBlog.likes).toBe(0)
 })
 
+test('adding a blog without title or url produces 400: Bad request', async () => {
+  const newBlogs = [
+    {
+      author: 'xvc',
+      url: 'a.b.c',
+      likes: 5
+    },
+    {
+      title: 'adsf',
+      author: 'xvc',
+      likes: 5
+    },
+    {
+      author: 'xvc',
+      likes: 5
+    }
+  ]
+
+  const promiseArray = newBlogs.map(blog => {
+    return api
+      .post('/api/blogs')
+      .send(blog)
+      .expect(400)
+  })
+
+  await Promise.all(promiseArray)
+})
+
 afterAll(() => {
   server.close()
 })
