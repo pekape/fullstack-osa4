@@ -7,18 +7,25 @@ blogsRouter.get('/', async (request, response) => {
 })
 
 blogsRouter.post('/', async (request, response) => {
-  const blog = new Blog(request.body)
+  try {
 
-  if (blog.title === undefined || blog.url === undefined) {
-    return response.status(400).json({ error: 'missing title or url' })
+    const blog = new Blog(request.body)
+
+    if (blog.title === undefined || blog.url === undefined) {
+      return response.status(400).json({ error: 'missing title or url' })
+    }
+
+    if (blog.likes === undefined) {
+      blog.likes = 0
+    }
+
+    const result = await blog.save()
+    response.status(201).json(result)
+
+  } catch (exception) {
+    console.log(exception)
+    response.status(500).json({ error: 'something went wrong' })
   }
-
-  if (blog.likes === undefined) {
-    blog.likes = 0
-  }
-
-  const result = await blog.save()
-  response.status(201).json(result)
 })
 
 module.exports = blogsRouter

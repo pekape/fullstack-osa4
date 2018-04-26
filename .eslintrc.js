@@ -40,7 +40,8 @@ module.exports = {
       "expect": true,
       "describe": true,
       "afterAll": true,
-      "beforeAll": true
+      "beforeAll": true,
+      "beforeEach": true
     },
     "parserOptions": {
       "ecmaVersion": 2017

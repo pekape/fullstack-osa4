@@ -2,23 +2,9 @@ const supertest = require('supertest')
 const { app, server } = require('../index')
 const api = supertest(app)
 const Blog = require('../models/blog')
+const { initialBlogs, blogsInDb } = require('./test_helper')
 
-const initialBlogs = [
-  {
-    title: 'React patterns',
-    author: 'Michael Chan',
-    url: 'https://reactpatterns.com/',
-    likes: 7,
-  },
-  {
-    title: 'Go To Statement Considered Harmful',
-    author: 'Edsger W. Dijkstra',
-    url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
-    likes: 5,
-  },
-]
-
-beforeAll(async () => {
+beforeEach(async () => {
   await Blog.remove({})
 
   const blogObjects = initialBlogs.map(blog => new Blog(blog))
@@ -34,19 +20,24 @@ test('blogs are returned as json', async () => {
 })
 
 test('all blogs are returned', async () => {
+  const blogsInDatabase = await blogsInDb()
+
   const response = await api
     .get('/api/blogs')
 
-  expect(response.body.length).toBe(initialBlogs.length)
+  expect(response.body.length).toBe(blogsInDatabase.length)
 })
 
-test('returned blogs contain specific author', async () => {
+test('returned blogs contain all authors', async () => {
+  const blogsInDatabase = await blogsInDb()
+  const authors = blogsInDatabase.map(b => b.author)
+
   const response = await api
     .get('/api/blogs')
 
   const contents = response.body.map(r => r.author)
 
-  expect(contents).toContain('Edsger W. Dijkstra')
+  authors.forEach(author => expect(contents).toContain(author))
 })
 
 test('a valid blog can be added', async () => {
@@ -57,19 +48,19 @@ test('a valid blog can be added', async () => {
     likes: 10
   }
 
+  const blogsBefore = await blogsInDb()
+
   await api
     .post('/api/blogs')
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
 
-  const response = await api
-    .get('/api/blogs')
+  const addedBlog = await Blog.findOne(newBlog)
+  const blogsAfter = await blogsInDb()
 
-  const contents = response.body.map(r => r.title)
-
-  expect(response.body.length).toBe(initialBlogs.length + 1)
-  expect(contents).toContain('otsikko')
+  expect(blogsAfter.length).toBe(blogsBefore.length + 1)
+  expect(blogsAfter).toContainEqual(addedBlog)
 })
 
 test('adding a blog without likes-field sets likes to 0', async () => {
@@ -79,13 +70,13 @@ test('adding a blog without likes-field sets likes to 0', async () => {
     url: 'a.b.c'
   }
 
-  const response = await api
+  await api
     .post('/api/blogs')
     .send(newBlog)
 
-  const createdBlog = response.body
+  const addedBlog = await Blog.findOne(newBlog)
 
-  expect(createdBlog.likes).toBe(0)
+  expect(addedBlog.likes).toBe(0)
 })
 
 test('adding a blog without title or url produces 400: Bad request', async () => {
