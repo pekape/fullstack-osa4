@@ -107,6 +107,34 @@ test('adding a blog without title or url produces 400: Bad request', async () =>
   await Promise.all(promiseArray)
 })
 
+test('a blog can be deleted', async () => {
+  const newBlog = {
+    title: 'otsikko',
+    author: 'kirjoittaja',
+    url: 'www.asdf.dfas',
+    likes: 10
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+
+  const addedBlog = await Blog.findOne(newBlog)
+
+  const blogsBeforeDelete = await blogsInDb()
+
+  expect(blogsBeforeDelete).toContainEqual(addedBlog)
+
+  await api
+    .delete(`/api/blogs/${addedBlog.id}`)
+    .expect(204)
+
+  const blogsAfterDelete = await blogsInDb()
+
+  expect(blogsAfterDelete).not.toContainEqual(addedBlog)
+  expect(blogsAfterDelete.length).toBe(blogsBeforeDelete.length - 1)
+})
+
 afterAll(() => {
   server.close()
 })
