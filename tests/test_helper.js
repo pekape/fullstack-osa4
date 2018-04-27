@@ -17,9 +17,16 @@ const initialBlogs = [
 
 const blogsInDb = async () => {
   const blogs = await Blog.find({})
-  return blogs
+  return blogs.map(Blog.format)
 }
 
+const giveBlog = () => ({
+  title: 'otsikko',
+  author: 'kirjoittaja',
+  url: 'www.asdf.dfas',
+  likes: 10
+})
+
 module.exports = {
-  initialBlogs, blogsInDb
+  initialBlogs, blogsInDb, giveBlog
 }

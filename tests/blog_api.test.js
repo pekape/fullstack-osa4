@@ -2,7 +2,7 @@ const supertest = require('supertest')
 const { app, server } = require('../index')
 const api = supertest(app)
 const Blog = require('../models/blog')
-const { initialBlogs, blogsInDb } = require('./test_helper')
+const { initialBlogs, blogsInDb, giveBlog } = require('./test_helper')
 
 beforeEach(async () => {
   await Blog.remove({})
@@ -41,22 +41,18 @@ test('returned blogs contain all authors', async () => {
 })
 
 test('a valid blog can be added', async () => {
-  const newBlog = {
-    title: 'otsikko',
-    author: 'kirjoittaja',
-    url: 'www.asdf.fi',
-    likes: 10
-  }
+  const newBlog = giveBlog()
 
   const blogsBefore = await blogsInDb()
 
-  await api
+  const response = await api
     .post('/api/blogs')
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
 
-  const addedBlog = await Blog.findOne(newBlog)
+  const addedBlog = response.body
+
   const blogsAfter = await blogsInDb()
 
   expect(blogsAfter.length).toBe(blogsBefore.length + 1)
@@ -64,38 +60,23 @@ test('a valid blog can be added', async () => {
 })
 
 test('adding a blog without likes-field sets likes to 0', async () => {
-  const newBlog = {
-    title: 'adsf',
-    author: 'xvc',
-    url: 'a.b.c'
-  }
+  const newBlog = giveBlog()
+  delete newBlog.likes
 
-  await api
+  const response = await api
     .post('/api/blogs')
     .send(newBlog)
-
-  const addedBlog = await Blog.findOne(newBlog)
+  const addedBlog = response.body
 
   expect(addedBlog.likes).toBe(0)
 })
 
 test('adding a blog without title or url produces 400: Bad request', async () => {
-  const newBlogs = [
-    {
-      author: 'xvc',
-      url: 'a.b.c',
-      likes: 5
-    },
-    {
-      title: 'adsf',
-      author: 'xvc',
-      likes: 5
-    },
-    {
-      author: 'xvc',
-      likes: 5
-    }
-  ]
+  const newBlogs = [ giveBlog(), giveBlog(), giveBlog() ]
+  delete newBlogs[0].title
+  delete newBlogs[1].url
+  delete newBlogs[2].title
+  delete newBlogs[2].url
 
   const promiseArray = newBlogs.map(blog => {
     return api
@@ -108,18 +89,13 @@ test('adding a blog without title or url produces 400: Bad request', async () =>
 })
 
 test('a blog can be deleted', async () => {
-  const newBlog = {
-    title: 'otsikko',
-    author: 'kirjoittaja',
-    url: 'www.asdf.dfas',
-    likes: 10
-  }
+  const newBlog = giveBlog()
 
-  await api
+  const response = await api
     .post('/api/blogs')
     .send(newBlog)
 
-  const addedBlog = await Blog.findOne(newBlog)
+  const addedBlog = response.body
 
   const blogsBeforeDelete = await blogsInDb()
 
@@ -133,6 +109,35 @@ test('a blog can be deleted', async () => {
 
   expect(blogsAfterDelete).not.toContainEqual(addedBlog)
   expect(blogsAfterDelete.length).toBe(blogsBeforeDelete.length - 1)
+})
+
+test('updating a blog works', async () => {
+  const newBlog = giveBlog()
+
+  const response = await api
+    .post('/api/blogs')
+    .send(newBlog)
+
+  const addedBlog = response.body
+
+  const changedBlog = giveBlog()
+  changedBlog.title = 'changed'
+
+  const blogsBeforeUpdate = await blogsInDb()
+
+  const responseUpdated = await api
+    .put(`/api/blogs/${addedBlog.id}`)
+    .send(changedBlog)
+    .expect(200)
+
+  const updatedBlog = responseUpdated.body
+
+  const blogsAfterUdpate = await blogsInDb()
+
+  expect(blogsAfterUdpate.length).toBe(blogsBeforeUpdate.length)
+  expect(blogsAfterUdpate).not.toContainEqual(addedBlog)
+  expect(blogsAfterUdpate).toContainEqual(updatedBlog)
+  expect(updatedBlog.title).toMatch('changed')
 })
 
 afterAll(() => {
