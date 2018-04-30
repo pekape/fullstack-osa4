@@ -12,10 +12,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.16.3",
-    "mongoose": "^5.0.14",
+    "bcrypt": "^2.0.1",
     "cors": "^2.8.4",
-    "dotenv": "^5.0.1"
+    "dotenv": "^5.0.1",
+    "express": "^4.16.3",
+    "mongoose": "^5.0.14"
   },
   "devDependencies": {
     "cross-env": "^5.1.4",
