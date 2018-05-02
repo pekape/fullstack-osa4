@@ -62,15 +62,24 @@ blogsRouter.delete('/:id', async (request, response) => {
 
     const blog = await Blog.findById(request.params.id)
 
+    if (blog === null) {
+      return response.status(404).json({ error: `blog of id ${request.params.id} not found` })
+    }
+
     if (decodedToken.id.toString() !== blog.user.toString()) {
       return response.status(401).json({ error: 'blogs can only be removed by their adder' })
     }
 
-    await Blog.findByIdAndRemove(request.params.id)
+    await blog.remove()
     response.status(204).end()
+
   } catch (exception) {
-    console.log(exception)
-    response.status(400).json({ error: 'malformatted id' })
+    if (exception.name === 'JsonWebTokenError') {
+      response.status(401).json({ error: exception.message })
+    } else {
+      console.log(exception)
+      response.status(500).json({ error: 'something went wrong' })
+    }
   }
 })
 
